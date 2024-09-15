@@ -1,8 +1,7 @@
 from conan import ConanFile
-from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.env import VirtualBuildEnv
-from conan.tools.files import copy, get, replace_in_file, rm, rmdir, patch
+from conan.tools.files import apply_conandata_patches, copy, export_conandata_patches, get, replace_in_file, rm, rmdir
 from conan.tools.gnu import Autotools, AutotoolsToolchain
 from conan.tools.layout import basic_layout
 from conan.tools.microsoft import unix_path
@@ -29,11 +28,13 @@ class LibelfConan(ConanFile):
         "fPIC": True,
     }
 
-    exports_sources = "CMakeLists.txt", "*.patch"
-
     @property
     def _settings_build(self):
         return getattr(self, "settings_build", self.settings)
+
+    def export_sources(self):
+        copy(self, "CMakeLists.txt", src=self.recipe_folder, dst=self.export_sources_folder)
+        export_conandata_patches(self)
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -65,8 +66,6 @@ class LibelfConan(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
-        patch_file = os.path.join(self.export_sources_folder, "001-getenv-fix.patch")
-        patch(self, patch_file=patch_file)
 
     def generate(self):
         if self.settings.os == "Windows":
@@ -84,7 +83,8 @@ class LibelfConan(ConanFile):
             tc.generate()
 
     def build(self):
-        if self.settings.os == "Windows":            
+        apply_conandata_patches(self)
+        if self.settings.os == "Windows":
             cmake = CMake(self)
             cmake.configure(build_script_folder=os.path.join(self.source_folder, os.pardir))
             cmake.build()
