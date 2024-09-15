@@ -83,6 +83,7 @@ class LibelfConan(ConanFile):
 
     def build(self):
         if self.settings.os == "Windows":
+            replace_in_file(self, os.path.join(self.source_folder, "lib", "version.c"), "#include <private.h>", "#include <private.h>\n#include <stdlib.h>")
             cmake = CMake(self)
             cmake.configure(build_script_folder=os.path.join(self.source_folder, os.pardir))
             cmake.build()
