@@ -10,3 +10,4 @@ patches:
     - patch_file: "patches/0.8.13-0001-getenv-fix.patch"
       patch_description: "Add missing include of stdlib in version.c"
       patch_type: "portability"
+
